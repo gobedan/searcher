@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go_search/03-homework/pkg/crawler"
 	"go_search/03-homework/pkg/crawler/spider"
 	"go_search/03-homework/pkg/index"
 	"slices"
@@ -52,9 +51,7 @@ const depth = 2
 
 var urls = []string{"https://go.dev", "https://golang.org"}
 
-var sFlag = flag.String("s", "", "keywords to search for IN TITTLE")
-
-var docs = []crawler.Document{}
+var sFlag = flag.String("s", "", "keywords to search for IN TITLE")
 
 func main() {
 	flag.Parse()
@@ -65,21 +62,11 @@ func main() {
 		scan(u)
 	}
 
-	for _, doc := range docs {
-		fmt.Printf("%+v\n", doc)
+	if *sFlag == "" {
+		return
 	}
 
-	res := []int{}
-
-	if *sFlag != "" {
-		fmt.Printf("Searching in Index for phrase: %s\n", *sFlag)
-		for s, id := range index.Index {
-			if s == *sFlag {
-				res = append(res, id)
-				fmt.Printf("Match found in document #%d\n", id)
-			}
-		}
-	}
+	res := search(*sFlag)
 
 	for _, id := range res {
 		i, ok := slices.BinarySearchFunc(index.Docs, id, func(d index.Document, n int) int {
@@ -101,4 +88,16 @@ func scan(url string) {
 	for _, s := range scans {
 		index.Add(index.Document{Title: s.Title, URL: s.URL})
 	}
+}
+
+func search(s string) []int {
+	res := []int{}
+	fmt.Printf("Searching in Index for phrase: %s\n", *sFlag)
+	for w, id := range index.Index {
+		if w == s {
+			res = append(res, id...)
+			fmt.Printf("Match found in document #%d\n", id)
+		}
+	}
+	return res
 }

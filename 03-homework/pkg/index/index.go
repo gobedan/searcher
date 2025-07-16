@@ -14,7 +14,7 @@ type Document struct {
 
 var Docs = []Document{}
 
-var Index = make(map[string]int)
+var Index = make(map[string][]int)
 
 // ? так и должно затирать в индексе номера документов для повторяющихся слов?
 func Add(d Document) {
@@ -23,7 +23,8 @@ func Add(d Document) {
 
 	words := strings.Split(d.Title, " ")
 	for _, w := range words {
-		Index[strings.ToLower(w)] = d.ID
+		wkey := strings.ToLower(w)
+		Index[wkey] = append(Index[wkey], d.ID)
 	}
 	slices.SortFunc(Docs, func(a Document, b Document) int {
 		return a.ID - b.ID
