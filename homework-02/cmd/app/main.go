@@ -64,6 +64,7 @@ func search(url string) {
 	scans, err := spd.Scan(url, depth)
 	if err != nil {
 		fmt.Printf("Scan failed for url:%s\n\tError:%v", url, err)
+		return
 	}
 	docs = append(docs, scans...)
 }
