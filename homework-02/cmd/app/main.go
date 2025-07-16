@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go_search/homework-02/pkg/crawler"
 	"go_search/homework-02/pkg/crawler/spider"
-	"log"
 	"strings"
 )
 
@@ -27,18 +26,22 @@ import (
 Пример вызова программы:
 gosearch -s documents
 */
+const depth = 2
+
+var urls = []string{"https://go.dev", "https://golang.org"}
+
 var sFlag = flag.String("s", "", "keywords to search for IN TITTLE")
 
 var docs = []crawler.Document{}
 
-func init() {
+func main() {
 	flag.Parse()
 	*sFlag = strings.TrimSpace(*sFlag)
-}
 
-func main() {
-	search("https://go.dev")
-	search("https://golang.org")
+	for _, u := range urls {
+		search(u)
+	}
+
 	for _, doc := range docs {
 		fmt.Printf("%+v\n", doc)
 	}
@@ -47,7 +50,7 @@ func main() {
 		fmt.Printf("Searching matchers for phrase: %s\n", *sFlag)
 		count := 0
 		for _, doc := range docs {
-			if strings.Contains(doc.Title, *sFlag) {
+			if strings.Contains(strings.ToLower(doc.Title), strings.ToLower(*sFlag)) {
 				fmt.Printf("Match found in: %s\t-\t%s\n", doc.URL, doc.Title)
 				count++
 			}
@@ -58,9 +61,9 @@ func main() {
 
 func search(url string) {
 	spd := spider.New()
-	scans, err := spd.Scan(url, 2)
+	scans, err := spd.Scan(url, depth)
 	if err != nil {
-		log.Fatalf("Scan failed for url:%s\n\tError:%v", url, err)
+		fmt.Printf("Scan failed for url:%s\n\tError:%v", url, err)
 	}
 	docs = append(docs, scans...)
 }
