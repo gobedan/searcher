@@ -1,32 +1,21 @@
 package index
 
 import (
-	"math/rand"
+	"go_search/03-homework/pkg/crawler"
 	"slices"
 	"strings"
 )
 
-type Document struct {
-	ID    int
-	URL   string
-	Title string
-}
-
-var Docs = []Document{}
-
 var Index = make(map[string][]int)
 
-// ? так и должно затирать в индексе номера документов для повторяющихся слов?
-func Add(d Document) {
-	d.ID = int(rand.Float32() * 10000)
-	Docs = append(Docs, d)
-
+func Add(d crawler.Document) {
 	words := strings.Split(d.Title, " ")
+
 	for _, w := range words {
 		wkey := strings.ToLower(w)
-		Index[wkey] = append(Index[wkey], d.ID)
+		if !slices.Contains(Index[wkey], d.ID) {
+			Index[wkey] = append(Index[wkey], d.ID)
+		}
 	}
-	slices.SortFunc(Docs, func(a Document, b Document) int {
-		return a.ID - b.ID
-	})
+
 }
