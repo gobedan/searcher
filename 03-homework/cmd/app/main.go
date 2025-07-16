@@ -17,7 +17,7 @@ var urls = []string{"https://go.dev", "https://golang.org"}
 
 var sFlag = flag.String("s", "", "keywords to search for IN TITLE")
 
-var Docs = []crawler.Document{}
+var docs = []crawler.Document{}
 
 func main() {
 	flag.Parse()
@@ -32,14 +32,16 @@ func main() {
 		return
 	}
 
-	res := search(*sFlag)
+	fmt.Printf("Searching in Index for phrase: %s\n", *sFlag)
+	res := index.Search(*sFlag)
+	fmt.Printf("Match found in documents #%v\n", res)
 
 	for _, id := range res {
-		i, ok := slices.BinarySearchFunc(Docs, id, func(d crawler.Document, n int) int {
+		i, ok := slices.BinarySearchFunc(docs, id, func(d crawler.Document, n int) int {
 			return d.ID - n
 		})
 		if ok {
-			fmt.Printf("#%d\t\t%s\t\t%s\n", Docs[i].ID, Docs[i].Title, Docs[i].URL)
+			fmt.Printf("#%d\t\t%s\t\t%s\n", docs[i].ID, docs[i].Title, docs[i].URL)
 		}
 	}
 }
@@ -54,21 +56,9 @@ func scan(url string) {
 	for _, s := range scans {
 		doc := crawler.Document{ID: int(rand.Float32() * 10000), Title: s.Title, URL: s.URL}
 		index.Add(doc)
-		Docs = append(Docs, doc)
+		docs = append(docs, doc)
 	}
-	slices.SortFunc(Docs, func(a crawler.Document, b crawler.Document) int {
+	slices.SortFunc(docs, func(a crawler.Document, b crawler.Document) int {
 		return a.ID - b.ID
 	})
-}
-
-func search(s string) []int {
-	res := []int{}
-	fmt.Printf("Searching in Index for phrase: %s\n", *sFlag)
-	for w, id := range index.Index {
-		if w == s {
-			res = append(res, id...)
-			fmt.Printf("Match found in document #%d\n", id)
-		}
-	}
-	return res
 }
