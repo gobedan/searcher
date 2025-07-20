@@ -1,7 +1,7 @@
 package membot
 
 import (
-	"go_search/homework-02/pkg/crawler"
+	"go_search/03-homework/pkg/crawler"
 )
 
 // Service - имитация служба поискового робота.
