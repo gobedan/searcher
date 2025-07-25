@@ -6,12 +6,16 @@ import (
 	"go_search/05-homework/pkg/crawler"
 	"go_search/05-homework/pkg/crawler/spider"
 	"go_search/05-homework/pkg/index"
+	"io"
 	"math/rand/v2"
+	"os"
 	"slices"
 	"strings"
 )
 
-const depth = 2
+const depth = 1
+
+const filepath = "docs"
 
 var urls = []string{"https://go.dev", "https://golang.org"}
 
@@ -19,13 +23,38 @@ var sFlag = flag.String("s", "", "keywords to search for IN TITLE")
 
 var docs = []crawler.Document{}
 
+var f *os.File
+
 func main() {
 	flag.Parse()
 	*sFlag = strings.TrimSpace(*sFlag)
 	*sFlag = strings.ToLower(*sFlag)
 
-	for _, u := range urls {
-		scan(u)
+	var err error
+	f, err = os.OpenFile(filepath, os.O_RDWR|os.O_APPEND|os.O_CREATE|os.O_EXCL, 0)
+	if os.IsExist(err) {
+		f, err := os.Open(filepath)
+		if err != nil {
+			fmt.Printf("Error: %v during opening file: %s\n >!!< Loading failed, starting scan ...\n", err, filepath)
+
+			scanAll()
+		}
+
+		load(f)
+
+		err = f.Close()
+		if err != nil {
+			fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
+		}
+	} else if err != nil {
+		fmt.Printf("Error: %v during opening file: %s\n >!!< Loading failed, starting scan ...\n", err, filepath)
+	} else {
+		scanAll()
+
+		err = f.Close()
+		if err != nil {
+			fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
+		}
 	}
 
 	if *sFlag == "" {
@@ -61,4 +90,20 @@ func scan(url string) {
 	slices.SortFunc(docs, func(a crawler.Document, b crawler.Document) int {
 		return a.ID - b.ID
 	})
+
+	save(f)
+}
+
+func scanAll() {
+	for _, u := range urls {
+		scan(u)
+	}
+}
+
+func load(r io.Reader) {
+
+}
+
+func save(w io.Writer) {
+
 }
