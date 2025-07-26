@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"go_search/05-homework/pkg/crawler"
@@ -13,7 +14,7 @@ import (
 	"strings"
 )
 
-const depth = 1
+const depth = 2
 
 const filepath = "docs"
 
@@ -35,9 +36,7 @@ func main() {
 	if os.IsExist(err) {
 		f, err := os.Open(filepath)
 		if err != nil {
-			fmt.Printf("Error: %v during opening file: %s\n >!!< Loading failed, starting scan ...\n", err, filepath)
-
-			scanAll()
+			fmt.Printf("Error: %v during opening file: %s\n", err, filepath)
 		}
 
 		load(f)
@@ -63,7 +62,7 @@ func main() {
 
 	fmt.Printf("Searching in Index for phrase: %s\n", *sFlag)
 	res := index.Search(*sFlag)
-	fmt.Printf("Match found in documents #%v\n", res)
+	fmt.Printf("Match found: %d\n in documents #%v\n", len(res), res)
 
 	for _, id := range res {
 		i, ok := slices.BinarySearchFunc(docs, id, func(d crawler.Document, n int) int {
@@ -90,20 +89,31 @@ func scan(url string) {
 	slices.SortFunc(docs, func(a crawler.Document, b crawler.Document) int {
 		return a.ID - b.ID
 	})
-
-	save(f)
 }
 
 func scanAll() {
 	for _, u := range urls {
 		scan(u)
 	}
+	save(f)
 }
 
 func load(r io.Reader) {
+	dec := gob.NewDecoder(r)
+	err := dec.Decode(&docs)
+	if err != nil {
+		fmt.Printf("Failed to load docs\t>!!< Error:%v\n", err)
+	}
 
+	for _, d := range docs {
+		index.Add(d)
+	}
 }
 
 func save(w io.Writer) {
-
+	enc := gob.NewEncoder(w)
+	err := enc.Encode(docs)
+	if err != nil {
+		fmt.Printf("Failed to save docs\t>!!< Error:%v\n", err)
+	}
 }
