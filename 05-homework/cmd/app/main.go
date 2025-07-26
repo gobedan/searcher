@@ -18,13 +18,11 @@ const depth = 2
 
 const filepath = "docs"
 
-var urls = []string{"https://go.dev", "https://golang.org"}
-
-var sFlag = flag.String("s", "", "keywords to search for IN TITLE")
-
-var docs = []crawler.Document{}
-
 func main() {
+	var docs []crawler.Document
+	urls := []string{"https://go.dev", "https://golang.org"}
+	sFlag := flag.String("s", "", "keywords to search for IN TITLE")
+
 	flag.Parse()
 	if *sFlag == "" {
 		fmt.Println("Exit: Target word not set (use -s argument to set target word)")
@@ -35,9 +33,19 @@ func main() {
 
 	_, err := os.Stat(filepath)
 	if os.IsNotExist(err) {
-		scanAll()
+		docs = scanAll(urls)
 	} else {
-		loadAll()
+		f, err := os.Open(filepath)
+		if err != nil {
+			fmt.Printf("Error: %v during opening file: %s\n", err, filepath)
+		}
+
+		docs = load(f)
+
+		err = f.Close()
+		if err != nil {
+			fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
+		}
 	}
 
 	fmt.Printf("Searching in Index for phrase: %s\n", *sFlag)
@@ -54,26 +62,30 @@ func main() {
 	}
 }
 
-func scan(url string) {
+func scan(url string) []crawler.Document {
+	res := make([]crawler.Document, 0)
 	spd := spider.New()
 	scans, err := spd.Scan(url, depth)
 	if err != nil {
 		fmt.Printf("Scan failed for url:%s\n\tError:%v", url, err)
-		return
+		return res
 	}
+
 	for _, s := range scans {
-		doc := crawler.Document{ID: int(rand.Float32() * 10000), Title: s.Title, URL: s.URL}
-		index.Add(doc)
-		docs = append(docs, doc)
+		r := crawler.Document{ID: int(rand.Float32() * 10000), Title: s.Title, URL: s.URL}
+		index.Add(r)
+		res = append(res, r)
 	}
-	slices.SortFunc(docs, func(a crawler.Document, b crawler.Document) int {
+	slices.SortFunc(res, func(a crawler.Document, b crawler.Document) int {
 		return a.ID - b.ID
 	})
+	return res
 }
 
-func scanAll() {
+func scanAll(urls []string) []crawler.Document {
+	res := make([]crawler.Document, 0)
 	for _, u := range urls {
-		scan(u)
+		res = append(res, scan(u)...)
 	}
 
 	f, err := os.OpenFile(filepath, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0)
@@ -81,44 +93,34 @@ func scanAll() {
 		fmt.Printf("Error: %v during opening file: %s\n", err, filepath)
 	}
 
-	save(f)
+	save(f, res)
 
 	err = f.Close()
 	if err != nil {
 		fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
 	}
 
+	return res
 }
 
-func loadAll() {
-	f, err := os.Open(filepath)
-	if err != nil {
-		fmt.Printf("Error: %v during opening file: %s\n", err, filepath)
-	}
-
-	load(f)
-
-	err = f.Close()
-	if err != nil {
-		fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
-	}
-}
-
-func load(r io.Reader) {
+func load(r io.Reader) []crawler.Document {
 	dec := gob.NewDecoder(r)
-	err := dec.Decode(&docs)
+	res := make([]crawler.Document, 0)
+	err := dec.Decode(&res)
 	if err != nil {
 		fmt.Printf("Failed to load docs\t>!!< Error:%v\n", err)
 	}
 
-	for _, d := range docs {
+	for _, d := range res {
 		index.Add(d)
 	}
+
+	return res
 }
 
-func save(w io.Writer) {
+func save(w io.Writer, d []crawler.Document) {
 	enc := gob.NewEncoder(w)
-	err := enc.Encode(docs)
+	err := enc.Encode(d)
 	if err != nil {
 		fmt.Printf("Failed to save docs\t>!!< Error:%v\n", err)
 	}
