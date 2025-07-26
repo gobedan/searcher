@@ -8,6 +8,7 @@ import (
 	"go_search/05-homework/pkg/crawler/spider"
 	"go_search/05-homework/pkg/index"
 	"io"
+	"log"
 	"math/rand/v2"
 	"os"
 	"slices"
@@ -33,18 +34,26 @@ func main() {
 
 	_, err := os.Stat(filepath)
 	if os.IsNotExist(err) {
-		docs = scanAll(urls)
+		docs, err = scanAll(urls)
+		if err != nil {
+			log.Fatal(err)
+		}
 	} else {
 		f, err := os.Open(filepath)
 		if err != nil {
 			fmt.Printf("Error: %v during opening file: %s\n", err, filepath)
+			os.Exit(1)
 		}
 
-		docs = load(f)
+		docs, err = load(f)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		err = f.Close()
 		if err != nil {
 			fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
+			os.Exit(1)
 		}
 	}
 
@@ -82,7 +91,7 @@ func scan(url string) []crawler.Document {
 	return res
 }
 
-func scanAll(urls []string) []crawler.Document {
+func scanAll(urls []string) ([]crawler.Document, error) {
 	res := make([]crawler.Document, 0)
 	for _, u := range urls {
 		res = append(res, scan(u)...)
@@ -90,38 +99,44 @@ func scanAll(urls []string) []crawler.Document {
 
 	f, err := os.OpenFile(filepath, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0)
 	if err != nil {
-		fmt.Printf("Error: %v during opening file: %s\n", err, filepath)
+		err = fmt.Errorf("error: %w during opening file: %s", err, filepath)
+		return res, err
 	}
 
-	save(f, res)
+	err = save(f, res)
+	if err != nil {
+		return res, err
+	}
 
 	err = f.Close()
 	if err != nil {
-		fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
+		err = fmt.Errorf("error: %w during closing file: %s", err, filepath)
 	}
 
-	return res
+	return res, err
 }
 
-func load(r io.Reader) []crawler.Document {
+func load(r io.Reader) ([]crawler.Document, error) {
 	dec := gob.NewDecoder(r)
 	res := make([]crawler.Document, 0)
 	err := dec.Decode(&res)
 	if err != nil {
-		fmt.Printf("Failed to load docs\t>!!< Error:%v\n", err)
+		err = fmt.Errorf("failed to load docs Error:%w", err)
+		return res, err
 	}
 
 	for _, d := range res {
 		index.Add(d)
 	}
 
-	return res
+	return res, nil
 }
 
-func save(w io.Writer, d []crawler.Document) {
+func save(w io.Writer, d []crawler.Document) error {
 	enc := gob.NewEncoder(w)
 	err := enc.Encode(d)
 	if err != nil {
-		fmt.Printf("Failed to save docs\t>!!< Error:%v\n", err)
+		err = fmt.Errorf("failed to save docs Error:%w", err)
 	}
+	return err
 }
