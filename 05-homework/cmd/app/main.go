@@ -24,40 +24,20 @@ var sFlag = flag.String("s", "", "keywords to search for IN TITLE")
 
 var docs = []crawler.Document{}
 
-var f *os.File
-
 func main() {
 	flag.Parse()
+	if *sFlag == "" {
+		fmt.Println("Exit: Target word not set (use -s argument to set target word)")
+		return
+	}
 	*sFlag = strings.TrimSpace(*sFlag)
 	*sFlag = strings.ToLower(*sFlag)
 
-	var err error
-	f, err = os.OpenFile(filepath, os.O_RDWR|os.O_APPEND|os.O_CREATE|os.O_EXCL, 0)
-	if os.IsExist(err) {
-		f, err := os.Open(filepath)
-		if err != nil {
-			fmt.Printf("Error: %v during opening file: %s\n", err, filepath)
-		}
-
-		load(f)
-
-		err = f.Close()
-		if err != nil {
-			fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
-		}
-	} else if err != nil {
-		fmt.Printf("Error: %v during opening file: %s\n >!!< Loading failed, starting scan ...\n", err, filepath)
-	} else {
+	_, err := os.Stat(filepath)
+	if os.IsNotExist(err) {
 		scanAll()
-
-		err = f.Close()
-		if err != nil {
-			fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
-		}
-	}
-
-	if *sFlag == "" {
-		return
+	} else {
+		loadAll()
 	}
 
 	fmt.Printf("Searching in Index for phrase: %s\n", *sFlag)
@@ -95,7 +75,33 @@ func scanAll() {
 	for _, u := range urls {
 		scan(u)
 	}
+
+	f, err := os.OpenFile(filepath, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0)
+	if err != nil {
+		fmt.Printf("Error: %v during opening file: %s\n", err, filepath)
+	}
+
 	save(f)
+
+	err = f.Close()
+	if err != nil {
+		fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
+	}
+
+}
+
+func loadAll() {
+	f, err := os.Open(filepath)
+	if err != nil {
+		fmt.Printf("Error: %v during opening file: %s\n", err, filepath)
+	}
+
+	load(f)
+
+	err = f.Close()
+	if err != nil {
+		fmt.Printf("Error: %v during closing file: %s\n", err, filepath)
+	}
 }
 
 func load(r io.Reader) {
