@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand/v2"
 	"reflect"
 	"sort"
 	"testing"
@@ -43,15 +44,65 @@ func TestSortInts(t *testing.T) {
 }
 
 func BenchmarkSortInts(b *testing.B) {
-	data := []int{22, 3432, 23415, 648971, 12123, -2331, 0, 999_999}
-	for b.Loop() {
-		sort.Ints(data)
+	tables := []struct {
+		name string
+		size int
+		data []int
+	}{
+		{
+			name: "1k",
+			size: 1_000,
+		},
+		{
+			name: "1m",
+			size: 1_000_000,
+		},
+	}
+	for _, tt := range tables {
+		tt.data = make([]int, tt.size)
+		for i := range tt.data {
+			tt.data[i] = rand.Int()
+		}
+		b.Run(tt.name, func(b *testing.B) {
+			for b.Loop() {
+				sort.Ints(tt.data)
+			}
+		})
 	}
 }
 
 func BenchmarkSortFloat64s(b *testing.B) {
-	data := []float64{22, 34.32, 234.15, 648971, 12123, -2331, 0, 999_999}
-	for b.Loop() {
-		sort.Float64s(data)
+	tables := []struct {
+		name string
+		size int
+		data []float64
+	}{
+		{
+			name: "1k",
+			size: 1_000,
+		},
+		{
+			name: "1m",
+			size: 1_000_000,
+		},
+	}
+	for _, tt := range tables {
+		tt.data = make([]float64, tt.size)
+		for i := range tt.data {
+			tt.data[i] = rand.Float64()
+		}
+		b.Run(tt.name, func(b *testing.B) {
+			for b.Loop() {
+				sort.Float64s(tt.data)
+			}
+		})
 	}
 }
+
+// Ints:
+//
+//	1K 797 ns/op
+//	1M 804_345 ns/op
+// Floats:
+//	1K 1041 ns/op
+//  1M 1_101_813 ns/op
