@@ -44,14 +44,14 @@ func Test_sortInts(t *testing.T) {
 
 func Benchmark_sortInts(b *testing.B) {
 	data := []int{22, 3432, 23415, 648971, 12123, -2331, 0, 999_999}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		sort.Ints(data)
 	}
 }
 
 func Benchmark_sortFloat64s(b *testing.B) {
 	data := []float64{22, 34.32, 234.15, 648971, 12123, -2331, 0, 999_999}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		sort.Float64s(data)
 	}
 }
