@@ -2,6 +2,10 @@ package bsearch
 
 import (
 	"math/rand"
+	"net/http"
+	_ "net/http/pprof"
+	"os"
+	"runtime/trace"
 	"sort"
 	"testing"
 	"time"
@@ -59,9 +63,9 @@ func TestSearches(t *testing.T) {
 
 func sampleData() []int {
 	rand.Seed(time.Now().UnixNano())
-	var data []int
+	data := make([]int, 1_000_000)
 	for i := 0; i < 1_000_000; i++ {
-		data = append(data, rand.Intn(1000))
+		data[i] = rand.Intn(1000)
 	}
 
 	sort.Slice(data, func(i, j int) bool { return data[i] < data[j] })
@@ -69,19 +73,29 @@ func sampleData() []int {
 }
 
 func BenchmarkBinary(b *testing.B) {
+	f, _ := os.Create("traceBin.out")
+	defer f.Close()
+	trace.Start(f)
 	data := sampleData()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		n := rand.Intn(1000)
 		res := Binary(data, n)
 		_ = res
 	}
+	trace.Stop()
+	http.ListenAndServe(":80", nil)
 }
 
 func BenchmarkSimple(b *testing.B) {
+	f, _ := os.Create("traceSimp.out")
+	defer f.Close()
+	trace.Start(f)
 	data := sampleData()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		n := rand.Intn(1000)
 		res := Simple(data, n)
 		_ = res
 	}
+	trace.Stop()
+	http.ListenAndServe(":81", nil)
 }
