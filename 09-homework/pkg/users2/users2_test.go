@@ -5,7 +5,31 @@ import (
 	"testing"
 )
 
-func TestElderEmp(t *testing.T) {
+func TestElder(t *testing.T) {
+	type args struct {
+		users []any
+	}
+	tests := []struct {
+		name string
+		args args
+		want any
+	}{
+		{
+			"Test #1",
+			args{[]any{Customer{22}, Employee{33}}},
+			Employee{33},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Elder(tt.args.users...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Elder() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+/* func TestElderEmp(t *testing.T) {
 	type args struct {
 		u []Employee
 	}
@@ -51,4 +75,4 @@ func TestElderCust(t *testing.T) {
 			}
 		})
 	}
-}
+} */
