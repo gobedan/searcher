@@ -1,11 +1,3 @@
-Course project: Web Search Engine 
+Go core course homeworks
 
-History of changes: 
-
-branch 'homework-02': 
-- entry point created
-- displaying search results for -s parameter 
-
-pre-made setup: 
-- package 'crawler' for recursive parsing of web pages 
-- project folder structure 
+thinknetica.com/pro/golang
