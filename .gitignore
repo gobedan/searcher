@@ -1,8 +1,0 @@
-*.exe 
-go.sum
-05-homework/cmd/app/docs
-08-homework/1-bench_profile/profile
-08-homework/1-bench_profile/profile001.png
-08-homework/1-bench_profile/traceBin.out
-08-homework/1-bench_profile/traceSimp.out
-10-homework/example.go

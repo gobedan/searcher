@@ -23,9 +23,7 @@ func Scan(url string, depth int) []crawler.Document {
 		index.Add(r)
 		res = append(res, r)
 	}
-	slices.SortFunc(res, func(a crawler.Document, b crawler.Document) int {
-		return a.ID - b.ID
-	})
+
 	return res
 }
 
@@ -35,9 +33,8 @@ func ScanAll(urls []string, d int) []crawler.Document {
 		res = append(res, Scan(u, d)...)
 	}
 
-	for _, d := range res {
-		index.Add(d)
-	}
-
+	slices.SortFunc(res, func(a crawler.Document, b crawler.Document) int {
+		return a.ID - b.ID
+	})
 	return res
 }

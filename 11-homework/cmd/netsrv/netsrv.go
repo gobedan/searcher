@@ -45,7 +45,7 @@ func handler(conn net.Conn) {
 	defer conn.Close()
 	defer fmt.Println("Conn closed")
 
-	conn.SetDeadline(time.Now().Add(time.Second * 10))
+	conn.SetDeadline(time.Now().Add(time.Second * 100))
 
 	r := bufio.NewReader(conn)
 	for {
@@ -54,13 +54,13 @@ func handler(conn net.Conn) {
 			return
 		}
 
-		fmt.Printf("Incoming search query: %s", sreq)
+		fmt.Printf("Incoming search query: %s | ", sreq)
 		_, err = conn.Write([]byte(search(string(sreq))))
 		if err != nil {
 			return
 		}
 
-		conn.SetDeadline(time.Now().Add(time.Second * 10))
+		conn.SetDeadline(time.Now().Add(time.Second * 100))
 	}
 
 }
