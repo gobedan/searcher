@@ -9,6 +9,8 @@ import (
 	"slices"
 )
 
+var Docs []crawler.Document
+
 func Scan(url string, depth int) []crawler.Document {
 	res := make([]crawler.Document, 0)
 	spd := spider.New()
@@ -27,14 +29,12 @@ func Scan(url string, depth int) []crawler.Document {
 	return res
 }
 
-func ScanAll(urls []string, d int) []crawler.Document {
-	res := make([]crawler.Document, 0)
+func ScanAll(urls []string, d int) {
 	for _, u := range urls {
-		res = append(res, Scan(u, d)...)
+		Docs = append(Docs, Scan(u, d)...)
 	}
 
-	slices.SortFunc(res, func(a crawler.Document, b crawler.Document) int {
+	slices.SortFunc(Docs, func(a crawler.Document, b crawler.Document) int {
 		return a.ID - b.ID
 	})
-	return res
 }
