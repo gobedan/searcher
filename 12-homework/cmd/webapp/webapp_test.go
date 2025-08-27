@@ -16,12 +16,29 @@ func TestMain(m *testing.M) {
 	testMux = http.NewServeMux()
 	testMux.HandleFunc("/index", showIndex)
 	testMux.HandleFunc("/docs", showDocs)
+
+	scanner.Docs = []crawler.Document{
+		{
+			ID:    444,
+			URL:   "http://www.testurl.com",
+			Title: "Title First",
+			Body:  "Body One",
+		},
+		{
+			ID:    555,
+			URL:   "http://www.test2url.com",
+			Title: "Title Second",
+			Body:  "Body Two",
+		},
+	}
+
+	index.Add(scanner.Docs[0])
+	index.Add(scanner.Docs[1])
+
 	m.Run()
 }
 
 func Test_showIndex(t *testing.T) {
-	index.Index = map[string][]int{"go": {123, 321}, "lang": {444}}
-
 	req := httptest.NewRequest(http.MethodGet, "/index", nil)
 
 	rr := httptest.NewRecorder()
@@ -33,27 +50,12 @@ func Test_showIndex(t *testing.T) {
 	}
 
 	body := rr.Body.String()
-	if !strings.Contains(body, "go") || !strings.Contains(body, "321") || !strings.Contains(body, "lang") {
+	if !strings.Contains(body, "title") || !strings.Contains(body, "555") || !strings.Contains(body, "444") {
 		t.Fatal(body)
 	}
 }
 
 func Test_showDocs(t *testing.T) {
-	scanner.Docs = []crawler.Document{
-		{
-			ID:    444,
-			URL:   "http://www.testurl.com",
-			Title: "Title",
-			Body:  "Body",
-		},
-		{
-			ID:    555,
-			URL:   "http://www.test2url.com",
-			Title: "Title2",
-			Body:  "Body2",
-		},
-	}
-
 	req := httptest.NewRequest(http.MethodGet, "/docs", nil)
 
 	rr := httptest.NewRecorder()
@@ -65,7 +67,7 @@ func Test_showDocs(t *testing.T) {
 	}
 
 	body := rr.Body.String()
-	if !strings.Contains(body, "555") || !strings.Contains(body, "test2") || !strings.Contains(body, "url.com") {
+	if !strings.Contains(body, "One") || !strings.Contains(body, "Two") || !strings.Contains(body, ".com") {
 		t.Fatal(body)
 	}
 }
