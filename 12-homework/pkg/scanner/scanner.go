@@ -27,11 +27,12 @@ func Scan(url string, depth int) ([]crawler.Document, error) {
 	return res, nil
 }
 
-func ScanAll(urls []string, d int) error {
+func ScanAll(urls []string, d int, echan chan error) {
 	for _, u := range urls {
 		res, err := Scan(u, d)
 		if err != nil {
-			return err
+			echan <- err
+			continue
 		}
 		Docs = append(Docs, res...)
 	}
@@ -39,5 +40,5 @@ func ScanAll(urls []string, d int) error {
 	slices.SortFunc(Docs, func(a crawler.Document, b crawler.Document) int {
 		return a.ID - b.ID
 	})
-	return nil
+	close(echan)
 }

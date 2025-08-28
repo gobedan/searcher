@@ -15,8 +15,12 @@ func main() {
 
 	urls := []string{"https://go.dev", "https://golang.org"}
 
-	// TODO goroutine error handling
-	go scanner.ScanAll(urls, depth)
+	echan := make(chan error, 10)
+	go scanner.ScanAll(urls, depth, echan)
+	go func() {
+		err := <-echan
+		fmt.Println(err)
+	}()
 
 	http.HandleFunc("/index", showIndex)
 	http.HandleFunc("/docs", showDocs)
