@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	api "go_search/13-homework/pkg/API"
+	"go_search/13-homework/pkg/api"
 	"go_search/13-homework/pkg/scanner"
 	"log"
 	"net/http"

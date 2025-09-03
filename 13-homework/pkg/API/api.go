@@ -21,17 +21,18 @@ type API struct {
 
 func New() *API {
 	r := mux.NewRouter()
+	api := &API{Router: r}
 
-	r.HandleFunc("/docs", AddDoc).Methods("POST")
-	r.HandleFunc("/docs/{id:[0-9]+}", DeleteDoc).Methods("DELETE")
-	r.HandleFunc("/docs/{id:[0-9]+}", UpdateDoc).Methods("PATCH", "PUT", "POST")
-	r.HandleFunc("/docs", ShowDocs).Methods("GET")
-	r.HandleFunc("/search", Search).Methods("GET")
+	r.HandleFunc("/docs", api.AddDoc).Methods("POST")
+	r.HandleFunc("/docs/{id:[0-9]+}", api.DeleteDoc).Methods("DELETE")
+	r.HandleFunc("/docs/{id:[0-9]+}", api.UpdateDoc).Methods("PATCH", "PUT", "POST")
+	r.HandleFunc("/docs", api.ShowDocs).Methods("GET")
+	r.HandleFunc("/search", api.Search).Methods("GET")
 
-	return &API{Router: r}
+	return api
 }
 
-func Search(w http.ResponseWriter, r *http.Request) {
+func (api *API) Search(w http.ResponseWriter, r *http.Request) {
 	q := r.FormValue("q")
 	if q == "" {
 		w.Write([]byte("Empty searching query!"))
@@ -49,7 +50,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ShowDocs(w http.ResponseWriter, r *http.Request) {
+func (api *API) ShowDocs(w http.ResponseWriter, r *http.Request) {
 	jDocs, err := json.MarshalIndent(scanner.Docs, "", "\t")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -63,9 +64,9 @@ func ShowDocs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func AddDoc(w http.ResponseWriter, r *http.Request) {
-	title := strings.TrimLeft(r.FormValue("Title"), " ")
-	url := strings.TrimLeft(r.FormValue("URL"), " ")
+func (api *API) AddDoc(w http.ResponseWriter, r *http.Request) {
+	title := strings.TrimLeft(r.FormValue("title"), " ")
+	url := strings.TrimLeft(r.FormValue("url"), " ")
 	if title == "" || url == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Required params are missing!\n(Title and URL should not be empty)"))
@@ -82,7 +83,7 @@ func AddDoc(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Document successfully created!"))
 }
 
-func DeleteDoc(w http.ResponseWriter, r *http.Request) {
+func (api *API) DeleteDoc(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -108,7 +109,7 @@ func DeleteDoc(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Document successfully deleted!"))
 }
 
-func UpdateDoc(w http.ResponseWriter, r *http.Request) {
+func (api *API) UpdateDoc(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -126,8 +127,8 @@ func UpdateDoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := strings.TrimLeft(r.FormValue("Title"), " ")
-	url := strings.TrimLeft(r.FormValue("URL"), " ")
+	title := strings.TrimLeft(r.FormValue("title"), " ")
+	url := strings.TrimLeft(r.FormValue("url"), " ")
 	if title == "" || url == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Required params are missing!\n(Title and URL should not be empty)"))

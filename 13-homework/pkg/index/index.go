@@ -21,6 +21,7 @@ func Add(d crawler.Document) {
 
 func Search(s string) []int {
 	res := []int{}
+	s = strings.ToLower(s)
 
 	for w, id := range Index {
 		if w == s {
