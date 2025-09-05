@@ -4,9 +4,11 @@ import (
 	"go_search/13-homework/pkg/crawler"
 	"slices"
 	"strings"
+	"sync"
 )
 
 var Index = make(map[string][]int)
+var Mu sync.Mutex
 
 func Add(d crawler.Document) {
 	words := strings.Split(d.Title, " ")

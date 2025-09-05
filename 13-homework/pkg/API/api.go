@@ -73,11 +73,16 @@ func (api *API) AddDoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	doc := crawler.Document{ID: int(rand.Float32() * 10000), Title: title, URL: url}
+	scanner.Mu.Lock()
 	scanner.Docs = append(scanner.Docs, doc)
 	slices.SortFunc(scanner.Docs, func(a crawler.Document, b crawler.Document) int {
 		return a.ID - b.ID
 	})
+	scanner.Mu.Unlock()
+
+	index.Mu.Lock()
 	index.Add(doc)
+	index.Mu.Unlock()
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Document successfully created!"))
@@ -101,9 +106,11 @@ func (api *API) DeleteDoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	scanner.Mu.Lock()
 	scanner.Docs = slices.DeleteFunc(scanner.Docs, func(doc crawler.Document) bool {
 		return doc.ID == id
 	})
+	scanner.Mu.Unlock()
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte("Document successfully deleted!"))
@@ -135,12 +142,14 @@ func (api *API) UpdateDoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	scanner.Mu.Lock()
 	i := slices.IndexFunc(scanner.Docs, func(doc crawler.Document) bool {
 		return doc.ID == id
 	})
 	doc := &scanner.Docs[i]
 	doc.Title = title
 	doc.URL = url
+	scanner.Mu.Unlock()
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte("Document successfully updated!"))

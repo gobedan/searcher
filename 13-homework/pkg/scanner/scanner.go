@@ -6,9 +6,11 @@ import (
 	"go_search/13-homework/pkg/index"
 	"math/rand/v2"
 	"slices"
+	"sync"
 )
 
 var Docs []crawler.Document
+var Mu sync.Mutex
 
 func Scan(url string, depth int) ([]crawler.Document, error) {
 	res := make([]crawler.Document, 0)
